@@ -1,56 +1,74 @@
 /* Style Settings */
 @import url('https://fonts.googleapis.com/css?family=Karla:400,700&display=swap');
+
 :root {
-    --bgColor:#1C1C1C;
-    --accentColor: #E6E6E6;
+    --bgColor: #1C1C1C;
     --font: 'Karla', sans-serif;
 }
 
-body{
+body {
     background-color: var(--bgColor);
+    color: #ffffff;
+    font-family: var(--font);
+    margin: 0;
 }
 
-#userPhoto{
+#userPhoto {
     width: 110px;
     height: 110px;
     display: block;
     margin: 35px auto 20px;
     border-radius: 50%;
+    object-fit: cover;
 }
 
-#userName{
-    color: #bbb;
-    font-size: 1rem;
-    font-weight: 600;
-    line-height: 1.25;
-    display: block;
+h1 {
+    margin: 1.33em 0;
     font-family: var(--font);
-    width: 100%;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: normal;
     text-align: center;
+    color: #ffffff;
+}
+
+#icons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0;
+    padding: 0 8px 16px;
+}
+
+#icons a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    min-height: 48px;
+    border-radius: 12px;
+    color: #ffffff;
     text-decoration: none;
 }
 
-#links{
-    max-width: 675px;
-    width: auto;
+#icons a svg {
     display: block;
-    margin: 27px auto;
-}
-.link{
-    display: block;
-    background-color: var(--accentColor);
-    color: var(--bgColor);
-    font-family: var(--font);
-    text-align: center;
-    margin-bottom: 20px;
-    padding: 17px;
-    text-decoration: none;
-    font-size: 1rem;
-    transition: all .25s cubic-bezier(.08,.59,.29,.99);
-    border: solid var(--accentColor) 2px;
+    width: 75px;
+    height: 75px;
+    stroke: #ffffff;
+    fill: #ffffff;
+    stroke-width: 0.5;
+    opacity: 0.8;
 }
 
-.link:hover{
-    background-color: var(--bgColor);
-    color: var(--accentColor);
+#icons a:hover svg,
+#icons a:focus-visible svg {
+    opacity: 1;
+}
+
+#icons a:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 4px;
 }
