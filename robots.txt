@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /.well-known/
+Allow: /
+
+Sitemap: https://aaronkatzin.com/sitemap.xml
