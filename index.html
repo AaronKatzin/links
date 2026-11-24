@@ -32,7 +32,10 @@
 </head>
 <body>
     <main>
-        <img id="userPhoto" src="img/aaron_profile_pic.jpg" width="110" height="110" alt="Aaron Katzin">
+        <picture>
+            <source type="image/webp" srcset="img/aaron_profile_pic-220.webp 220w" sizes="(min-width: 768px) 124px, 112px">
+            <img id="userPhoto" src="img/aaron_profile_pic-220.jpg" srcset="img/aaron_profile_pic-220.jpg 220w" sizes="(min-width: 768px) 124px, 112px" width="110" height="110" alt="Aaron Katzin" decoding="async" fetchpriority="high">
+        </picture>
         <h1>Aaron Katzin</h1>
         <nav id="icons" aria-label="Contact">
             <a target="_blank" rel="noopener" href="https://api.whatsapp.com/send?phone=972585777670" aria-label="WhatsApp">
