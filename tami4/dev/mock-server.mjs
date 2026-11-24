@@ -173,8 +173,14 @@ function validateSetting(key, value) {
     if (key === 'connectivityEnabled') {
         return { error: 'unsafe_configuration', detail: 'connectivityEnabled cannot be changed' };
     }
-    if (key === 'wifiName' || key === 'languageSetting') {
-        return { error: 'read_only', detail: `${key} is read-only` };
+    if (key === 'wifiName') {
+        return { error: 'read_only', detail: 'wifiName is read-only' };
+    }
+    if (key === 'languageSetting') {
+        if (typeof value !== 'number' || !Number.isFinite(value)) {
+            return { error: 'invalid_type', detail: 'languageSetting has the wrong type' };
+        }
+        return null;
     }
     if (!WRITABLE_BOOLS.has(key) && key !== 'boilingTemp') {
         return { error: 'unknown_key', detail: `${key} is unknown` };

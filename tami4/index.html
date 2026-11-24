@@ -45,12 +45,16 @@
                         <span>Boiling temperature (70–100, range is a guess)</span>
                         <input type="number" name="boilingTemp" min="70" max="100" step="1" inputmode="numeric" disabled>
                     </label>
+                    <label class="field">
+                        <span>Language (raw value)</span>
+                        <input type="number" name="languageSetting" step="1" inputmode="numeric" disabled>
+                        <span class="hint">The value is a raw device code.</span>
+                    </label>
                 </div>
                 <p class="subhead">Read only</p>
                 <div class="rows readonly">
                     <label class="row"><span>Connectivity</span><input type="checkbox" name="connectivityEnabled" disabled></label>
                     <label class="field"><span>Wi-Fi name</span><input type="text" name="wifiName" disabled spellcheck="false"></label>
-                    <label class="field"><span>Language</span><input type="text" name="languageSetting" disabled></label>
                 </div>
                 <button type="submit" id="save" class="primary" disabled>Save</button>
             </form>

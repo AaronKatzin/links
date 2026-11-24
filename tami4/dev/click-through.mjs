@@ -317,7 +317,10 @@ async function testMock(base) {
         [{}, 400, 'empty'],
         [{ connectivityEnabled: false }, 400, 'unsafe_configuration'],
         [{ wifiName: 'other' }, 400, 'read_only'],
-        [{ languageSetting: 2 }, 400, 'read_only'],
+        [{ languageSetting: 2 }, 200, null],
+        [{ languageSetting: 1.5 }, 200, null],
+        [{ languageSetting: '2' }, 400, 'invalid_type'],
+        [{ languageSetting: null }, 400, 'invalid_type'],
         [{ nope: true }, 400, 'unknown_key'],
         [{ childLock: 'yes' }, 400, 'invalid_type'],
         [{ boilingTemp: '95' }, 400, 'invalid_type'],
@@ -499,9 +502,26 @@ class Browser {
         check(drinksText.includes('Tea') && drinksText.includes('Coffee') && drinksText.includes('Formula'), 'drink buttons');
         check((await this.evaluate(`document.querySelector('[name="connectivityEnabled"]').disabled`)) === true, 'connectivity disabled');
         check((await this.evaluate(`document.querySelector('[name="wifiName"]').disabled`)) === true, 'wifi disabled');
-        check((await this.evaluate(`document.querySelector('[name="languageSetting"]').disabled`)) === true, 'language disabled');
+        const language = await this.evaluate(`(() => {
+            const input = document.querySelector('[name="languageSetting"]');
+            return {
+                disabled: input.disabled,
+                type: input.type,
+                step: input.step,
+                min: input.min,
+                max: input.max,
+                inputMode: input.inputMode,
+                value: input.value,
+                label: input.closest('label').innerText,
+            };
+        })()`);
+        check(language.disabled === false, 'language is writable');
+        check(language.type === 'number' && language.step === '1' && language.inputMode === 'numeric', 'language input is a raw number');
+        check(language.min === '' && language.max === '', 'language has no min or max');
+        check(language.value === '1', 'language shown');
+        check(language.label.includes('Language (raw value)'), 'language label');
+        check(/raw device code/.test(language.label), 'language hint');
         check((await this.evaluate(`document.querySelector('[name="wifiName"]').value`)) === 'home', 'wifi shown');
-        check((await this.evaluate(`document.querySelector('[name="languageSetting"]').value`)) === '1', 'language shown');
         await this.noHot('initial page');
         const mobileShot = await this.shot('tami4_mobile.png');
         check(mobileShot.width >= 400 && mobileShot.width <= 430, 'mobile screenshot is phone width');
@@ -558,15 +578,37 @@ class Browser {
         await this.waitForText('#settings-result', /^Saved\.$/, 'settings saved');
         this.dialogMode = null;
         check(this.dialogs.some((message) => message.includes('Change settings?') && message.includes('Child lock: on') && message.includes('Boiling temperature: 98') && message.includes('Light: off')), 'confirm lists the changes');
+        check(!this.dialogs.some((message) => /unreadable language/.test(message)), 'language warning stays off when language is unchanged');
         const saved = await jfetch(this.base, '/__mock/state');
         check(saved.body.lastConfigPost.contentType.toLowerCase().startsWith('application/json'), 'save sent application/json');
         const posted = saved.body.lastConfigPost.body;
         check(posted.childLock === true && posted.lightning === false && posted.boilingTemp === 98, 'save body matches the controls');
-        check(!('connectivityEnabled' in posted) && !('wifiName' in posted) && !('languageSetting' in posted), 'save omits read-only keys');
+        check(!('connectivityEnabled' in posted) && !('wifiName' in posted) && !('languageSetting' in posted), 'save omits unchanged language and read-only keys');
         check(saved.body.config.boilingTemp === 98 && saved.body.config.connectivityEnabled === true && saved.body.config.wifiName === 'home', 'server config updated');
         check((await this.evaluate(`document.querySelector('[name="childLock"]').checked`)) === true, 'child lock stayed on');
         await this.noHot('after save');
         await this.shot('tami4_mobile_saved.png');
+
+        await this.evaluate(`document.querySelector('[name="languageSetting"]').value = '2'`);
+        this.dialogs = [];
+        this.dialogMode = 'accept';
+        await this.click('#save');
+        await this.waitForText('#settings-result', /^Saved\.$/, 'language saved');
+        this.dialogMode = null;
+        check(this.dialogs.some((message) => message.includes('An unknown value could put the screen in an unreadable language.')), 'language confirm warns about an unreadable screen');
+        const languageSave = await jfetch(this.base, '/__mock/state');
+        check(languageSave.body.lastConfigPost.body.languageSetting === 2 && Object.keys(languageSave.body.lastConfigPost.body).length === 1, 'language save sends only the changed code');
+        check(languageSave.body.config.languageSetting === 2 && languageSave.body.config.wifiName === 'home' && languageSave.body.config.connectivityEnabled === true, 'server stored the language and left read-only fields');
+        check((await this.evaluate(`document.querySelector('[name="languageSetting"]').value`)) === '2', 'language field shows the saved code');
+
+        await this.evaluate(`document.querySelector('[name="languageSetting"]').value = '3'`);
+        this.dialogs = [];
+        this.dialogMode = 'dismiss';
+        await this.click('#save');
+        await this.waitForText('#settings-result', /^Settings were not changed\.$/, 'language cancel');
+        this.dialogMode = null;
+        check((await jfetch(this.base, '/__mock/state')).body.config.languageSetting === 2, 'dismissed language change was not saved');
+        await this.evaluate(`document.querySelector('[name="languageSetting"]').value = '2'`);
 
         await this.click('[name="childLock"]');
         this.dialogs = [];

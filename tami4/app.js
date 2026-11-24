@@ -8,7 +8,7 @@ const WRITABLE_BOOLS = [
     ['pushAndDrink', 'Push and drink'],
 ];
 
-const READONLY = ['connectivityEnabled', 'wifiName', 'languageSetting'];
+const READONLY = ['connectivityEnabled', 'wifiName'];
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -226,6 +226,7 @@ function setBusy(on) {
         field(name).disabled = lock || !loadedConfig;
     }
     field('boilingTemp').disabled = lock || !loadedConfig;
+    field('languageSetting').disabled = lock || !loadedConfig;
     for (const name of READONLY) {
         field(name).disabled = true;
     }
@@ -317,6 +318,7 @@ function describePatch(patch) {
     const labels = Object.fromEntries(WRITABLE_BOOLS);
     return Object.keys(patch).map((key) => {
         if (key === 'boilingTemp') return `Boiling temperature: ${patch[key]}`;
+        if (key === 'languageSetting') return `Language: ${patch[key]}`;
         return `${labels[key]}: ${patch[key] ? 'on' : 'off'}`;
     }).join('\n');
 }
@@ -367,11 +369,23 @@ async function onSave(event) {
         }
         patch.boilingTemp = temp.valueAsNumber;
     }
+    const language = field('languageSetting');
+    if (language.valueAsNumber !== loadedConfig.languageSetting) {
+        if (!Number.isFinite(language.valueAsNumber) || !language.checkValidity()) {
+            setSettingsResult(language.validationMessage || 'Invalid value.');
+            return;
+        }
+        patch.languageSetting = language.valueAsNumber;
+    }
     if (Object.keys(patch).length === 0) {
         setSettingsResult('No changes to save.');
         return;
     }
-    if (!window.confirm(`Change settings?\n\n${describePatch(patch)}`)) {
+    let confirmText = `Change settings?\n\n${describePatch(patch)}`;
+    if (Object.hasOwn(patch, 'languageSetting')) {
+        confirmText += '\n\nAn unknown value could put the screen in an unreadable language.';
+    }
+    if (!window.confirm(confirmText)) {
         setSettingsResult('Settings were not changed.');
         return;
     }
